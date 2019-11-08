@@ -158,7 +158,7 @@ int LocalSearch(vector<int> &s, double distancia){
 
     }
   }
-    if(deltaMinimium <= 0){
+    if(deltaMinimium < 0){
       cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
       newDistance = distancia + deltaMinimium;
       if(!firstNode){
@@ -200,7 +200,7 @@ int main(int argc, char** argv) {
 
   //Criando subtour com as cidades candidatas
   for(int i = 0; i < tamanhoSubtourInicial; i++){
-    int j = (0*rand()) % listaDeCandidatos.size();
+    int j = (rand()) % listaDeCandidatos.size();
     s.insert(s.begin()+1, listaDeCandidatos[j]);
     listaDeCandidatos.erase(listaDeCandidatos.begin() + j);
   }
