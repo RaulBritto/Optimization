@@ -11,10 +11,10 @@
 
 using namespace std;
 
-//double ** matrizAdj;
-int dimension = 6; // quantidade total de vertices
+double ** matrizAdj;
+int dimension; // quantidade total de vertices
 double alpha = 0.1;
-
+/*
 int matrizAdj[7][7] =  {
                       {0,0,0,0,0,0,0},
                       {0,0,2,1,4,9,1},
@@ -24,7 +24,7 @@ int matrizAdj[7][7] =  {
                       {0,9,7,8,2,0,2},
                       {0,1,2,6,5,2,0}
     }; // matriz de adjacencia
-
+*/
 
 
 struct InsertionInfo{
@@ -191,8 +191,8 @@ int main(int argc, char** argv) {
   /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
  
-  //readData(argc, argv, &dimension, &matrizAdj);
-  printData();
+  readData(argc, argv, &dimension, &matrizAdj);
+  //printData();
 
   // Criando lista de cidades candidatas (indices) a partir da cidade 2
   for (int i = 2; i <= dimension; i++) 
