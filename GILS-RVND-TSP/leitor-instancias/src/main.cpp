@@ -7,12 +7,13 @@
 #include <time.h>      
 #include <map>   
 #include <random>
+#include <tuple>
 
 using namespace std;
 
 //double ** matrizAdj;
 int dimension = 6; // quantidade total de vertices
-double alpha = 0.5;
+double alpha = 0.1;
 
 int matrizAdj[7][7] =  {
                       {0,0,0,0,0,0,0},
@@ -27,9 +28,9 @@ int matrizAdj[7][7] =  {
 
 
 struct InsertionInfo{
-  int noInserido; // no k a s e r i n s e r i d o
-  int arestaRemovida; // a r e s t a { i , j } onde o no k s e r a i n s e r i d o
-  double custo; // d e l t a ao i n s e r i r k na a r e s t a { i , j }
+  int noInserido; // no k a ser inserido
+  int arestaRemovida; //aresta {i,j} onde o no k sera inserido
+  double custo; //delta ao inserir k na aresta {i,j}
 
   bool operator() (InsertionInfo i,InsertionInfo j) { return (i.custo<j.custo);}
 };
@@ -44,8 +45,8 @@ void printData() {
   }
 }
 
-int calculaDistancia(vector<int> listaCidade){
-  int distancia = 0;
+double calculaDistancia(vector<int> listaCidade){
+  double distancia = 0;
 
   for(int i = 0; i < listaCidade.size()- 1; i++){
       distancia += matrizAdj[listaCidade.at(i)][listaCidade.at(i+1)];
@@ -61,19 +62,134 @@ void imprimeCidade(vector<int> lista){
         cout << *i << " "; 
 }
 
+vector<int>&  Construction(vector<int> &s, vector<int> &listaDeCandidatos) 
+{ 
+    vector <InsertionInfo> custoInsercao((s.size()-1)*listaDeCandidatos.size());
+    /* Variavéis de controle da aleatorieadade*/
+    srand (time(NULL));
+    std::default_random_engine generator (time(NULL));
+    std::discrete_distribution<int> distribution {1-alpha,alpha};
+    int choosed, number;
+
+    while(listaDeCandidatos.size()){
+      for(int i = 1, j = i+1, l = 0 ; i <= s.size() - 1; i++, j++){
+        for(auto k : listaDeCandidatos){
+          custoInsercao[l].custo = matrizAdj[s[i-1]][k] + matrizAdj[s[j-1]][k] - matrizAdj[s[i-1]][s[j-1]];
+          custoInsercao[l].noInserido = k;
+          custoInsercao[l].arestaRemovida = i ;
+          l++;
+        }
+      }
+
+      std::sort(custoInsercao.begin(), custoInsercao.end(), InsertionInfo());
+
+      //for(int i = 0; i < custoInsercao.size(); i++)
+      //  cout << custoInsercao.at(i).noInserido << ' ' <<  custoInsercao.at(i).arestaRemovida << ' ' << custoInsercao.at(i).custo << endl;
+      number = distribution(generator);
+      if(!number) choosed = 0;
+      else choosed = rand()%custoInsercao.size();
+
+      s.insert(s.begin()+custoInsercao[choosed].arestaRemovida, custoInsercao[choosed].noInserido);
+      listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), custoInsercao[choosed].noInserido), listaDeCandidatos.end());
+      custoInsercao.resize((s.size()-1)*listaDeCandidatos.size());
+
+    }
+
+   return s;
+} 
+
+int LocalSearch(vector<int> &s, double distancia){
+
+  double delta = 0, deltaMinimium = 0, newDistance = 0;
+  int firstNode = 0, secondNode = 0;
+  
+  for(int n = 0, i = 0; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
+    for(int j = i+1; j < s.size()-1; j++){
+      if(i==0){
+        //primeiro nó e o consectuivo
+        if(j== 1) {
+          delta = - matrizAdj[s[i]][s[j]] - matrizAdj[s[j]][s[j+1]] - matrizAdj[s.size()-1][i] 
+                  + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]] + matrizAdj[s.size()-1][s[i]];
+          deltaMinimium = delta;
+          firstNode = i; secondNode = j;  
+        }
+        //primeiro nó e penúltimo  
+        else if (j== s.size()-2){
+          delta = - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          } 
+        } 
+        else {
+          //primeiro nó e os nós do meio
+          delta = - matrizAdj[s[i]][s[i+1]] - matrizAdj[s.size()-1][s[i]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]] + matrizAdj[s[s.size()-2]][s[j]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          } 
+        }
+      }
+      else{
+        if(j == i+1){
+         delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
+         if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }     
+        } 
+        else{
+          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }      
+        } 
+      } 
+
+      
+      //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
+      //cout  <<  i << "," << j << " " << distancia  <<endl;
+      if(deltaMinimium > delta) deltaMinimium = delta;
+
+    }
+  }
+    if(deltaMinimium <= 0){
+      cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
+      newDistance = distancia + deltaMinimium;
+      if(!firstNode){
+        swap(s[firstNode], s[secondNode]);
+        s[s.size()-1] = s[0];
+      } 
+      else{
+        swap(s[firstNode], s[secondNode]);
+      }
+      cout << "Nova rota: ";
+      imprimeCidade(s);
+      cout << " NewDistance " << newDistance << endl;
+
+      return newDistance;  
+    }else return 0;
+
+    
+}
+    
+
 
 int main(int argc, char** argv) {
 
   vector<int>  s = {1,1};  
+  vector<int>  teste;  
   vector<int> listaDeCandidatos;
   int tamanhoSubtourInicial = 2;
+  double distance = 0, _distance = 0;
 
   /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
-  std::default_random_engine generator (time(NULL));
-  std::discrete_distribution<int> distribution {1-alpha,alpha};
-  int choosed, number;
-
  
   //readData(argc, argv, &dimension, &matrizAdj);
   printData();
@@ -94,39 +210,22 @@ int main(int argc, char** argv) {
   cout << endl;
   //calculaDistancia(s);
 
+  s = Construction(s, listaDeCandidatos);
+  cout << "solucao inicial: ";
+  imprimeCidade (s);
+  cout << endl;
+  distance = calculaDistancia(s);
 
-  vector <InsertionInfo> custoInsercao((s.size()-1)*listaDeCandidatos.size());
-
-  while(listaDeCandidatos.size()){
-    for(int i = 1, j = i+1, l = 0 ; i <= s.size() - 1; i++, j++){
-      for(auto k : listaDeCandidatos){
-        custoInsercao[l].custo = matrizAdj[s[i-1]][k] + matrizAdj[s[j-1]][k] - matrizAdj[s[i-1]][s[j-1]];
-        custoInsercao[l].noInserido = k;
-        custoInsercao[l].arestaRemovida = i ;
-        l++;
-      }
-    }
-
-    //for(int i = 0; i < custoInsercao.size(); i++)
-    //  cout << custoInsercao.at(i).noInserido << ' ' <<  custoInsercao.at(i).arestaRemovida << ' ' << custoInsercao.at(i).custo << endl;
-    std::sort(custoInsercao.begin(), custoInsercao.end(), InsertionInfo());
-
-    number = distribution(generator);
-    if(!number) choosed = 0;
-    else choosed = rand()%custoInsercao.size();
-    
-    s.insert(s.begin()+custoInsercao[choosed].arestaRemovida, custoInsercao[choosed].noInserido);
-    listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), custoInsercao[choosed].noInserido), listaDeCandidatos.end());
-    custoInsercao.resize((s.size()-1)*listaDeCandidatos.size());
+  _distance =  LocalSearch(s,distance); 
+  while(_distance < distance){
+    distance = _distance;
+    _distance =  LocalSearch(s,distance); 
   }
 
-  
-
-  cout << "s: " ;
-  imprimeCidade(s);
+  cout << endl <<"solucao final: ";    
+  imprimeCidade (s);
   cout << endl;
-  calculaDistancia(s);
+  distance = calculaDistancia(s);
 
-    
     return 0;  
 }
