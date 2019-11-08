@@ -4,12 +4,16 @@
 #include <vector>
 #include <cstdlib>
 #include <algorithm>
+#include <time.h>      
+#include <map>   
+#include <random>
 
 using namespace std;
 
-double ** matrizAdj;
-int dimension ; // quantidade total de vertices
-/*
+//double ** matrizAdj;
+int dimension = 6; // quantidade total de vertices
+double alpha = 0.5;
+
 int matrizAdj[7][7] =  {
                       {0,0,0,0,0,0,0},
                       {0,0,2,1,4,9,1},
@@ -19,7 +23,7 @@ int matrizAdj[7][7] =  {
                       {0,9,7,8,2,0,2},
                       {0,1,2,6,5,2,0}
     }; // matriz de adjacencia
-*/
+
 
 
 struct InsertionInfo{
@@ -63,30 +67,27 @@ int main(int argc, char** argv) {
   vector<int>  s = {1,1};  
   vector<int> listaDeCandidatos;
   int tamanhoSubtourInicial = 2;
- 
-  readData(argc, argv, &dimension, &matrizAdj);
-  //printData();
 
-  
+  /* Variavéis de controle da aleatorieadade*/
+  srand (time(NULL));
+  std::default_random_engine generator (time(NULL));
+  std::discrete_distribution<int> distribution {1-alpha,alpha};
+  int choosed, number;
+
+ 
+  //readData(argc, argv, &dimension, &matrizAdj);
+  printData();
+
   // Criando lista de cidades candidatas (indices) a partir da cidade 2
   for (int i = 2; i <= dimension; i++) 
     listaDeCandidatos.push_back(i); 
 
-  
-
   //Criando subtour com as cidades candidatas
   for(int i = 0; i < tamanhoSubtourInicial; i++){
-    int j = rand() % listaDeCandidatos.size();
+    int j = (0*rand()) % listaDeCandidatos.size();
     s.insert(s.begin()+1, listaDeCandidatos[j]);
     listaDeCandidatos.erase(listaDeCandidatos.begin() + j);
   }
-
-/*  
-  s.insert(s.begin()+1, 3);
-  listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), 3), listaDeCandidatos.end());
-  s.insert(s.begin()+2, 2);
-  listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), 2), listaDeCandidatos.end());
- */ 
 
   cout << "s: " ;
   imprimeCidade(s);
@@ -109,10 +110,17 @@ int main(int argc, char** argv) {
     //for(int i = 0; i < custoInsercao.size(); i++)
     //  cout << custoInsercao.at(i).noInserido << ' ' <<  custoInsercao.at(i).arestaRemovida << ' ' << custoInsercao.at(i).custo << endl;
     std::sort(custoInsercao.begin(), custoInsercao.end(), InsertionInfo());
-    s.insert(s.begin()+custoInsercao[0].arestaRemovida, custoInsercao[0].noInserido);
-    listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), custoInsercao[0].noInserido), listaDeCandidatos.end());
+
+    number = distribution(generator);
+    if(!number) choosed = 0;
+    else choosed = rand()%custoInsercao.size();
+    
+    s.insert(s.begin()+custoInsercao[choosed].arestaRemovida, custoInsercao[choosed].noInserido);
+    listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), custoInsercao[choosed].noInserido), listaDeCandidatos.end());
     custoInsercao.resize((s.size()-1)*listaDeCandidatos.size());
   }
+
+  
 
   cout << "s: " ;
   imprimeCidade(s);
