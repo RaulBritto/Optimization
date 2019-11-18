@@ -14,6 +14,7 @@ using namespace std;
 double ** matrizAdj;
 int dimension; // quantidade total de vertices
 double alpha = 0.1;
+int IMAX = 10;
 /*
 int matrizAdj[7][7] =  {
                       {0,0,0,0,0,0,0},
@@ -98,14 +99,19 @@ vector<int>&  Construction(vector<int> &s, vector<int> &listaDeCandidatos)
    return s;
 } 
 
-int LocalSearch(vector<int> &s, double distancia){
+int LocalSearch(vector<int> &s, double &distancia){
 
-  double delta = 0, deltaMinimium = 0, newDistance = 0;
+  double delta = 0, deltaMinimium = 0;
   int firstNode = 0, secondNode = 0;
   
-  for(int n = 0, i = 0; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
-    for(int j = i+1; j < s.size()-1; j++){
-      if(i==0){
+  for(int t = 0; t < 100; t++){
+    delta = 0;
+    deltaMinimium = 0;
+
+    for(int n = 0, i = 0; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
+      for(int j = i+1; j < s.size()-1; j++){
+        if(i==0){
+      /*  
         //primeiro nó e o consectuivo
         if(j== 1) {
           delta = - matrizAdj[s[i]][s[j]] - matrizAdj[s[j]][s[j+1]] - matrizAdj[s.size()-1][i] 
@@ -131,36 +137,38 @@ int LocalSearch(vector<int> &s, double distancia){
             firstNode = i; secondNode = j;  
           } 
         }
-      }
-      else{
-        if(j == i+1){
-         delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
-                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
-         if(deltaMinimium > delta){
-            deltaMinimium = delta;
-            firstNode = i; secondNode = j;  
-          }     
-        } 
+      */
+        }
         else{
-          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
-                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]];
-          if(deltaMinimium > delta){
-            deltaMinimium = delta;
-            firstNode = i; secondNode = j;  
-          }      
+          if(j == i+1){
+            delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
+                      + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
+            if(deltaMinimium > delta){
+              deltaMinimium = delta;
+              firstNode = i; secondNode = j;  
+            }     
+          } 
+          else{
+            delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+                    + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]];
+            if(deltaMinimium > delta){
+              deltaMinimium = delta;
+              firstNode = i; secondNode = j;  
+            }      
+          } 
         } 
-      } 
 
       
       //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
       //cout  <<  i << "," << j << " " << distancia  <<endl;
-      if(deltaMinimium > delta) deltaMinimium = delta;
+      //if(deltaMinimium > delta) deltaMinimium = delta;
 
     }
   }
+    //Se houve melhora
     if(deltaMinimium < 0){
       cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
-      newDistance = distancia + deltaMinimium;
+      distancia = distancia + deltaMinimium;
       if(!firstNode){
         swap(s[firstNode], s[secondNode]);
         s[s.size()-1] = s[0];
@@ -168,14 +176,12 @@ int LocalSearch(vector<int> &s, double distancia){
       else{
         swap(s[firstNode], s[secondNode]);
       }
-      cout << "Nova rota: ";
+      cout << t << " Nova rota: ";
       imprimeCidade(s);
-      cout << " NewDistance " << newDistance << endl;
-
-      return newDistance;  
-    }else return 0;
-
-    
+      cout << " NewDistance " << distancia << endl;
+    }
+  }  
+      return distancia;      
 }
     
 
@@ -183,49 +189,56 @@ int LocalSearch(vector<int> &s, double distancia){
 int main(int argc, char** argv) {
 
   vector<int>  s = {1,1};  
-  vector<int>  teste;  
   vector<int> listaDeCandidatos;
   int tamanhoSubtourInicial = 2;
-  double distance = 0, _distance = 0;
+  double distance = 0, _distance = 0, distanceMin = 10000000000;
 
   /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
   //printData();
+  //for(int iteration = 0; iteration < IMAX; iteration++){
+    // Criando lista de cidades candidatas (indices) a partir da cidade 2
+    for (int i = 2; i <= dimension; i++) 
+      listaDeCandidatos.push_back(i);   
 
-  // Criando lista de cidades candidatas (indices) a partir da cidade 2
-  for (int i = 2; i <= dimension; i++) 
-    listaDeCandidatos.push_back(i); 
+    //Criando subtour com as cidades candidatas
+    for(int i = 0; i < tamanhoSubtourInicial; i++){
+      int j = (rand()) % listaDeCandidatos.size();
+      s.insert(s.begin()+1, listaDeCandidatos[j]);
+      listaDeCandidatos.erase(listaDeCandidatos.begin() + j);
+    }
 
-  //Criando subtour com as cidades candidatas
-  for(int i = 0; i < tamanhoSubtourInicial; i++){
-    int j = (rand()) % listaDeCandidatos.size();
-    s.insert(s.begin()+1, listaDeCandidatos[j]);
-    listaDeCandidatos.erase(listaDeCandidatos.begin() + j);
-  }
+    cout << "s: " ;
+    imprimeCidade(s);
+    cout << endl;
+    //calculaDistancia(s);
 
-  cout << "s: " ;
-  imprimeCidade(s);
-  cout << endl;
-  //calculaDistancia(s);
+    s = Construction(s, listaDeCandidatos);
+    cout << "solucao inicial: ";
+    imprimeCidade (s);
+    cout << endl;
+    distance = calculaDistancia(s);
 
-  s = Construction(s, listaDeCandidatos);
-  cout << "solucao inicial: ";
-  imprimeCidade (s);
-  cout << endl;
-  distance = calculaDistancia(s);
-
-  _distance =  LocalSearch(s,distance); 
-  while(_distance < distance){
-    distance = _distance;
+    
     _distance =  LocalSearch(s,distance); 
-  }
+    /*
+    while(_distance < distance){
+      distance = _distance;
+      _distance =  LocalSearch(s,distance); 
+    }
+    */
 
-  cout << endl <<"solucao final: ";    
-  imprimeCidade (s);
-  cout << endl;
-  distance = calculaDistancia(s);
+    cout << endl <<"solucao final: ";    
+    imprimeCidade (s);
+    cout << endl;
+    distance = calculaDistancia(s);
 
+
+
+  //}
+
+  cout << "Menor distancia = " << _distance << endl;
     return 0;  
 }
