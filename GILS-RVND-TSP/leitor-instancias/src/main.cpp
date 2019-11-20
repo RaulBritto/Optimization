@@ -13,8 +13,10 @@ using namespace std;
 
 double ** matrizAdj;
 int dimension; // quantidade total de vertices
-double alpha = 0.1;
-int IMAX = 10;
+int tamanhoSubtourInicial = 2;
+double alpha = 0.15;
+int IMAX = 1;
+int IILS = 1;
 /*
 int matrizAdj[7][7] =  {
                       {0,0,0,0,0,0,0},
@@ -99,12 +101,12 @@ vector<int>&  Construction(vector<int> &s, vector<int> &listaDeCandidatos)
    return s;
 } 
 
-int LocalSearch(vector<int> &s, double &distancia){
+int Swap(vector<int> &s, double distancia){
 
   double delta = 0, deltaMinimium = 0;
   int firstNode = 0, secondNode = 0;
   
-  for(int t = 0; t < 100; t++){
+  do{
     delta = 0;
     deltaMinimium = 0;
 
@@ -176,21 +178,48 @@ int LocalSearch(vector<int> &s, double &distancia){
       else{
         swap(s[firstNode], s[secondNode]);
       }
-      cout << t << " Nova rota: ";
       imprimeCidade(s);
       cout << " NewDistance " << distancia << endl;
     }
-  }  
+  }while(deltaMinimium < 0);  
       return distancia;      
 }
     
+vector<int> Pertub(vector<int> s){
 
+  vector<int> subsequence;
+  std::vector<int>::iterator it;
+  int index;
+
+  //Choose the first index
+  index = (rand() % (s.size()-2)) + 1;
+  //Choose the next three indexs randomly
+  for(int i = 0; i <= 3; i++){
+    do{
+      index = (rand() % (s.size()-2)) + 1;
+      it = find (subsequence.begin(), subsequence.end(), index);
+    }while(it != subsequence.end());
+    subsequence.push_back(index);
+  } 
+  std::sort (subsequence.begin(), subsequence.end());
+  
+  //Swap the subvectors sequences
+  vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
+  vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
+  s.insert(s.begin()+ subsequence[2] , subvector1.begin(),subvector1.end());
+  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 + + subvector1.size());
+  s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
+  s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
+  
+  return s;
+}
 
 int main(int argc, char** argv) {
 
-  vector<int>  s = {1,1};  
+  vector<int>  s = {1,1};
+  vector<int> s_;  
   vector<int> listaDeCandidatos;
-  int tamanhoSubtourInicial = 2;
+  
   double distance = 0, _distance = 0, distanceMin = 10000000000;
 
   /* Variavéis de controle da aleatorieadade*/
@@ -198,7 +227,7 @@ int main(int argc, char** argv) {
  
   readData(argc, argv, &dimension, &matrizAdj);
   //printData();
-  //for(int iteration = 0; iteration < IMAX; iteration++){
+  for(int iteration = 0; iteration < IMAX; iteration++){
     // Criando lista de cidades candidatas (indices) a partir da cidade 2
     for (int i = 2; i <= dimension; i++) 
       listaDeCandidatos.push_back(i);   
@@ -214,30 +243,34 @@ int main(int argc, char** argv) {
     imprimeCidade(s);
     cout << endl;
     //calculaDistancia(s);
-
+    
     s = Construction(s, listaDeCandidatos);
+    s_ = s;
     cout << "solucao inicial: ";
     imprimeCidade (s);
     cout << endl;
     distance = calculaDistancia(s);
-
     
-    _distance =  LocalSearch(s,distance); 
-    /*
-    while(_distance < distance){
-      distance = _distance;
-      _distance =  LocalSearch(s,distance); 
+
+    for(int iterILS = 0; iterILS < IILS; iterILS++){
+      _distance =  Swap(s,distance); 
+      if(_distance < distance){
+        s_ = s;
+        iterILS = 0;
+      }
+      s = Pertub(s_); 
     }
-    */
+    
 
-    cout << endl <<"solucao final: ";    
-    imprimeCidade (s);
-    cout << endl;
-    distance = calculaDistancia(s);
+      cout << endl <<"solucao final rodada : "  << endl;    
+      imprimeCidade (s);
+      cout << endl;
+      distance = calculaDistancia(s);   
 
 
 
-  //}
+
+  }
 
   cout << "Menor distancia = " << _distance << endl;
     return 0;  
