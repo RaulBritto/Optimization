@@ -96,15 +96,96 @@ vector<int>  Construction(double &alpha){
   return s;
 }
 
-int RVND(vector<int> &s){
+int Swap(vector<int> &s, double distancia){
 
+  double delta = 0, deltaMinimium = 0;
+  int firstNode = 0, secondNode = 0;
+  
+  do{
+    delta = 0;
+    deltaMinimium = 0;
+
+    for(int n = 0, i = 1; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
+      for(int j = i+1; j < s.size()-1; j++){  
+        if(j == i+1){
+          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
+                    + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }     
+        } 
+        else{
+          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }      
+        } 
+      //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
+      //cout  <<  i << "," << j << " " << distancia  <<endl;
+      //if(deltaMinimium > delta) deltaMinimium = delta;
+      }
+    }
+    //Se houve melhora
+    if(deltaMinimium < 0){
+      cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
+      distancia = distancia + deltaMinimium;
+      swap(s[firstNode], s[secondNode]);
+      printCities(s);
+      cout << " NewDistance " << distancia << endl;
+    }
+  }while(deltaMinimium < 0);  
+      return distancia;      
 }
+
+int RVND(vector<int> &s){
+  
+  vector<int> NL;
+  int distance = 0;
+  //set some values:
+  for (int i=1; i<=5; ++i) NL.push_back(i);
+  //using built-in random generator:
+  random_shuffle(NL.begin(), NL.end());
+
+  distance = getDistance(s);
+
+  while(!NL.empty()){
+    switch (NL.front()){ 
+      case 1:
+        //cout << "Swap" << endl;
+        Swap(s, distance);
+        break;
+      case 2:
+        //cout << "2-opt" << endl;
+        break;
+      case 3:
+        //cout << "Reinsertion" << endl;
+        break;
+      case 4:
+        //cout << "Or-2-opt" << endl;
+        break;
+      case 5:
+        //cout << "Or-3-opt" << endl;
+        break;
+    }
+    NL.erase(NL.begin());
+  }
+
+  return distance;
+}
+
+
 
 int main(int argc, char** argv) {
 
-  vector<int>  s;
-  vector<int>  s_;
   double alpha;
+  vector<int>  s;
+  int distance = 0;
+  vector<int>  s_;
+  int distance_ = 0;
+
   //TODO: ALTERAR 1 para dimension
   int IILS = min(1,100); 
   
@@ -120,8 +201,7 @@ int main(int argc, char** argv) {
 
     for(int interILS = 0; interILS < IILS; interILS++){
       printCities(s);
-      getDistance(s);
-      //s = RVND(s);
+      distance = RVND(s);
       //if(interILS == 9) interILS = 0;
     }
   }
