@@ -140,6 +140,47 @@ int Swap(vector<int> &s, double distancia){
       return distancia;      
 }
 
+int _2opt(vector<int> &s, double distancia){
+
+  double delta = 0, deltaMinimium = 0;
+  int firstNode = 0, secondNode = 0;
+  vector<int> subsequence;
+
+  do{
+    delta = 0;
+    deltaMinimium = 0;
+    for(int i = 1 ; i < s.size()-3; i++){
+      //cout << s[i] << ' ' ;
+      for(int j = i +2; j < s.size()-1; j++){
+        delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[j]][s[j+1]]
+                  + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[i]][s[j+1]];
+        if(deltaMinimium > delta){
+          deltaMinimium = delta;
+          firstNode = i; secondNode = j;  
+        }
+        //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
+        //cout  <<  i << "," << j << " " << distancia  <<endl;
+      }
+    }
+    //Se houve melhora
+    if(deltaMinimium < 0){
+      for(int i = secondNode; i >= firstNode; i--) subsequence.push_back(s[i]);
+        
+      cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
+      distancia = distancia + deltaMinimium;
+      //swap(s[firstNode], s[secondNode]);
+      printCities(subsequence);
+      cout << " NewDistance " << distancia << endl;
+    }
+  }while(deltaMinimium < 0);  
+
+  return distancia; 
+}
+
+int orkOpt(vector<int> &s, double distancia, int k){
+  return distancia; 
+}
+
 int RVND(vector<int> &s){
   
   vector<int> NL;
@@ -155,19 +196,23 @@ int RVND(vector<int> &s){
     switch (NL.front()){ 
       case 1:
         //cout << "Swap" << endl;
-        Swap(s, distance);
+        //Swap(s, distance);
         break;
       case 2:
         //cout << "2-opt" << endl;
+        _2opt(s, distance);
         break;
       case 3:
         //cout << "Reinsertion" << endl;
+        orkOpt(s, distance, 1);
         break;
       case 4:
         //cout << "Or-2-opt" << endl;
+        orkOpt(s, distance, 2);
         break;
       case 5:
         //cout << "Or-3-opt" << endl;
+        orkOpt(s, distance, 3);
         break;
     }
     NL.erase(NL.begin());
