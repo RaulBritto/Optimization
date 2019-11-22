@@ -125,7 +125,6 @@ int Swap(vector<int> &s, double distancia){
         } 
       //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
       //cout  <<  i << "," << j << " " << distancia  <<endl;
-      //if(deltaMinimium > delta) deltaMinimium = delta;
       }
     }
     //Se houve melhora
@@ -150,7 +149,6 @@ int _2opt(vector<int> &s, double distancia){
     delta = 0;
     deltaMinimium = 0;
     for(int i = 1 ; i < s.size()-3; i++){
-      //cout << s[i] << ' ' ;
       for(int j = i +2; j < s.size()-1; j++){
         delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[j]][s[j+1]]
                   + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[i]][s[j+1]];
@@ -164,13 +162,16 @@ int _2opt(vector<int> &s, double distancia){
     }
     //Se houve melhora
     if(deltaMinimium < 0){
+      //creting new reverse sequence 
       for(int i = secondNode; i >= firstNode; i--) subsequence.push_back(s[i]);
-        
-      cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
+      //replacing the sequence with the old one
+      s.insert(s.begin()+ firstNode , subsequence.begin(),subsequence.end());
+      s.erase(s.begin() + firstNode + subsequence.size()  , s.begin() + firstNode + 2*subsequence.size());
+      //updating the new distance after moving the sequence
       distancia = distancia + deltaMinimium;
-      //swap(s[firstNode], s[secondNode]);
-      printCities(subsequence);
+      printCities(s);
       cout << " NewDistance " << distancia << endl;
+      subsequence.clear();
     }
   }while(deltaMinimium < 0);  
 
@@ -179,6 +180,35 @@ int _2opt(vector<int> &s, double distancia){
 
 int orkOpt(vector<int> &s, double distancia, int k){
   return distancia; 
+}
+
+vector<int> Pertub(vector<int> s){
+
+  vector<int> subsequence;
+  std::vector<int>::iterator it;
+  int index;
+
+  //Choose the first index
+  index = (rand() % (s.size()-2)) + 1;
+  //Choose the next three indexs randomly
+  for(int i = 0; i <= 3; i++){
+    do{
+      index = (rand() % (s.size()-2)) + 1;
+      it = find (subsequence.begin(), subsequence.end(), index);
+    }while(it != subsequence.end());
+    subsequence.push_back(index);
+  } 
+  std::sort (subsequence.begin(), subsequence.end());
+  
+  //Swap the subvectors sequences
+  vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
+  vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
+  s.insert(s.begin()+ subsequence[2] , subvector1.begin(),subvector1.end());
+  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 + + subvector1.size());
+  s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
+  s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
+  
+  return s;
 }
 
 int RVND(vector<int> &s){
@@ -195,12 +225,12 @@ int RVND(vector<int> &s){
   while(!NL.empty()){
     switch (NL.front()){ 
       case 1:
-        //cout << "Swap" << endl;
-        //Swap(s, distance);
+        cout << "Swap" << endl;
+        distance = Swap(s, distance);
         break;
       case 2:
-        //cout << "2-opt" << endl;
-        _2opt(s, distance);
+        cout << "2-opt" << endl;
+        distance = _2opt(s, distance);
         break;
       case 3:
         //cout << "Reinsertion" << endl;
