@@ -181,41 +181,67 @@ int _2opt(vector<int> &s, double distancia){
 int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
+  vector<int> subsequence_;
+  vector<int> s_;
   double delta = 0, deltaMinimium = 0;
-  int firstNode = 0, secondNode = 0;
 
-  //Creating the subsequence that will be moved
-  for(int i = 1; i < s.size() -k; i++){
-    //cout << s[i] << ' ';
-    for(int j = 0; j < k; j++ ){
-      subsequence.push_back(s[i+j]);
+  do{
+    delta = 0; deltaMinimium = 0;
+
+    for(int i = 1; i < s.size() -k; i++){
+      //Creating the subsequence that will be moved  
+      for(int j = 0; j < k; j++ ){
+        subsequence.push_back(s[i+j]);
+      }
+
+cout << "> "; printCities(subsequence);
+    
+      //Removing the subsequence from the solution s
+      s.erase(s.begin()+i, s.begin()+i+subsequence.size());
+//cout << "Deletando ";
+//printCities(s);
+//getDistance(s);
+    
+      //To test the new possibilities
+      for(int j = 1; j <= s.size() -1;j++){
+        //this move generates the same sequence of cities
+        if(i == j) continue;
+      
+        delta = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]] - matrizAdj[s[j-1]][s[j]]
+                + matrizAdj[s[i-1]][s[i]] + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
+        if(deltaMinimium > delta){
+          deltaMinimium = delta;
+          subsequence_ = subsequence;
+        
+//printCities(s);
+cout << "Inserindo " << delta << "\t";
+          s.insert(s.begin()+j, subsequence.begin(), subsequence.end());
+          s_ = s;
+printCities(s);
+cout << "\t"; getDistance(s);
+          s.erase(s.begin()+j, s.begin()+j+subsequence.size());
+        }
+//cout << "Nós : " << s[i-1] << " " << s[i] << " | " << s[j-1] << " " << subsequence[0] << " " << subsequence[k-1] << " " << s[j] << " ";
+      }
+    
+
+      s.insert(s.begin()+i , subsequence.begin(), subsequence.end());
+//cout << "Voltando ";
+//printCities(s); 
+      subsequence.clear();
     }
-    printCities(subsequence);
-    //Removing the subsequence from the solution s
-    s.erase(s.begin()+i, s.begin()+i+subsequence.size());
-    cout << "Deletando ";
-    printCities(s);
-    //To test the new possibilities
-    for(int j = 1; j <= s.size() - k;j++){
-      //this move generates the same sequence of cities
-      if(i == j) continue;
-      delta = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]]
-              + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
-      cout << "Nós : " << s[i-1] << " " << s[i] << " | " << s[j-1] << " " << subsequence[0] << " " << subsequence[k-1] << " " << s[j] << " ";
+    //If an improvement exists
+    if(deltaMinimium < 0){
+cout << endl;
+cout << "Melhor subsequencia " <<  endl; 
+printCities(subsequence_);
+cout << "Melhor rota " << endl;
+printCities(s_);
+getDistance(s_);
+    s = s_;
+    } 
 
-      cout << "Inserindo " << delta << "\t";
-      s.insert(s.begin()+j, subsequence.begin(), subsequence.end());
-      printCities(s);
-      s.erase(s.begin()+j, s.begin()+j+subsequence.size());
-    }
-    s.insert(s.begin()+i , subsequence.begin(), subsequence.end());
-    cout << "Voltando ";
-    printCities(s);
-
-    subsequence.clear();
-  }
-  cout << endl;
-
+  }while(deltaMinimium < 0);
   return distancia; 
 }
 
@@ -305,7 +331,7 @@ int main(int argc, char** argv) {
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
-  printData();
+  //printData();
   for(int i = 0; i < IMAX; i++){
     alpha = R[rand()%R.size()];
     s = Construction(alpha);
