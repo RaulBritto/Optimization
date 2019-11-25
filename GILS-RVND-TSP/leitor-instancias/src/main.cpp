@@ -179,6 +179,43 @@ int _2opt(vector<int> &s, double distancia){
 }
 
 int orkOpt(vector<int> &s, double distancia, int k){
+
+  vector<int> subsequence;
+  double delta = 0, deltaMinimium = 0;
+  int firstNode = 0, secondNode = 0;
+
+  //Creating the subsequence that will be moved
+  for(int i = 1; i < s.size() -k; i++){
+    //cout << s[i] << ' ';
+    for(int j = 0; j < k; j++ ){
+      subsequence.push_back(s[i+j]);
+    }
+    printCities(subsequence);
+    //Removing the subsequence from the solution s
+    s.erase(s.begin()+i, s.begin()+i+subsequence.size());
+    cout << "Deletando ";
+    printCities(s);
+    //To test the new possibilities
+    for(int j = 1; j <= s.size() - k;j++){
+      //this move generates the same sequence of cities
+      if(i == j) continue;
+      delta = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]]
+              + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
+      cout << "Nós : " << s[i-1] << " " << s[i] << " | " << s[j-1] << " " << subsequence[0] << " " << subsequence[k-1] << " " << s[j] << " ";
+
+      cout << "Inserindo " << delta << "\t";
+      s.insert(s.begin()+j, subsequence.begin(), subsequence.end());
+      printCities(s);
+      s.erase(s.begin()+j, s.begin()+j+subsequence.size());
+    }
+    s.insert(s.begin()+i , subsequence.begin(), subsequence.end());
+    cout << "Voltando ";
+    printCities(s);
+
+    subsequence.clear();
+  }
+  cout << endl;
+
   return distancia; 
 }
 
@@ -225,24 +262,24 @@ int RVND(vector<int> &s){
   while(!NL.empty()){
     switch (NL.front()){ 
       case 1:
-        cout << "Swap" << endl;
-        distance = Swap(s, distance);
+        //cout << "Swap" << endl;
+        //distance = Swap(s, distance);
         break;
       case 2:
-        cout << "2-opt" << endl;
-        distance = _2opt(s, distance);
+        //cout << "2-opt" << endl;
+        //distance = _2opt(s, distance);
         break;
       case 3:
-        //cout << "Reinsertion" << endl;
-        orkOpt(s, distance, 1);
+        cout << "Reinsertion" << endl;
+        //orkOpt(s, distance, 1);
         break;
       case 4:
-        //cout << "Or-2-opt" << endl;
+        cout << "Or-2-opt" << endl;
         orkOpt(s, distance, 2);
         break;
       case 5:
-        //cout << "Or-3-opt" << endl;
-        orkOpt(s, distance, 3);
+        cout << "Or-3-opt" << endl;
+        //orkOpt(s, distance, 3);
         break;
     }
     NL.erase(NL.begin());
@@ -268,7 +305,7 @@ int main(int argc, char** argv) {
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
-  //printData();
+  printData();
   for(int i = 0; i < IMAX; i++){
     alpha = R[rand()%R.size()];
     s = Construction(alpha);
