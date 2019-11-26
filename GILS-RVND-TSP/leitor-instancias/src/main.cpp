@@ -101,10 +101,6 @@ int Swap(vector<int> &s, double distancia){
   double delta = 0, deltaMinimium = 0;
   int firstNode = 0, secondNode = 0;
   
-  do{
-    delta = 0;
-    deltaMinimium = 0;
-
     for(int n = 0, i = 1; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
       for(int j = i+1; j < s.size()-1; j++){  
         if(j == i+1){
@@ -123,19 +119,13 @@ int Swap(vector<int> &s, double distancia){
             firstNode = i; secondNode = j;  
           }      
         } 
-      //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
-      //cout  <<  i << "," << j << " " << distancia  <<endl;
       }
     }
     //Se houve melhora
     if(deltaMinimium < 0){
-      cout << "Menor delta: " << deltaMinimium << " [Nós: " << s[firstNode] << " " << s[secondNode] << "]" <<endl;
       distancia = distancia + deltaMinimium;
       swap(s[firstNode], s[secondNode]);
-      printCities(s);
-      cout << " NewDistance " << distancia << endl;
     }
-  }while(deltaMinimium < 0);  
       return distancia;      
 }
 
@@ -145,9 +135,6 @@ int _2opt(vector<int> &s, double distancia){
   int firstNode = 0, secondNode = 0;
   vector<int> subsequence;
 
-  do{
-    delta = 0;
-    deltaMinimium = 0;
     for(int i = 1 ; i < s.size()-3; i++){
       for(int j = i +2; j < s.size()-1; j++){
         delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[j]][s[j+1]]
@@ -156,8 +143,6 @@ int _2opt(vector<int> &s, double distancia){
           deltaMinimium = delta;
           firstNode = i; secondNode = j;  
         }
-        //cout << "[" <<s.at(i) << "," << s.at(j) << "]" << "  delta = " << delta <<endl;
-        //cout  <<  i << "," << j << " " << distancia  <<endl;
       }
     }
     //Se houve melhora
@@ -169,11 +154,8 @@ int _2opt(vector<int> &s, double distancia){
       s.erase(s.begin() + firstNode + subsequence.size()  , s.begin() + firstNode + 2*subsequence.size());
       //updating the new distance after moving the sequence
       distancia = distancia + deltaMinimium;
-      printCities(s);
-      cout << " NewDistance " << distancia << endl;
       subsequence.clear();
     }
-  }while(deltaMinimium < 0);  
 
   return distancia; 
 }
@@ -181,12 +163,8 @@ int _2opt(vector<int> &s, double distancia){
 int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
-  vector<int> subsequence_;
   vector<int> s_;
   double delta = 0, deltaMinimium = 0;
-
-  do{
-    delta = 0; deltaMinimium = 0;
 
     for(int i = 1; i < s.size() -k; i++){
       //Creating the subsequence that will be moved  
@@ -196,14 +174,13 @@ int orkOpt(vector<int> &s, double distancia, int k){
       //Removing the subsequence from the solution s
       s.erase(s.begin()+i, s.begin()+i+subsequence.size());
       //To test the new possibilities
-      for(int j = 1; j <= s.size() -1;j++){
+      for(int j = 1; j <= s.size()-1;j++){
         //this move generates the same sequence of cities
         if(i == j) continue;
         delta = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]] - matrizAdj[s[j-1]][s[j]]
                 + matrizAdj[s[i-1]][s[i]] + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
         if(deltaMinimium > delta){
           deltaMinimium = delta;
-          subsequence_ = subsequence;
           s.insert(s.begin()+j, subsequence.begin(), subsequence.end());
           s_ = s;
           s.erase(s.begin()+j, s.begin()+j+subsequence.size());
@@ -218,7 +195,6 @@ int orkOpt(vector<int> &s, double distancia, int k){
       s = s_;
     } 
 
-  }while(deltaMinimium < 0);
   return distancia; 
 }
 
@@ -267,22 +243,32 @@ int RVND(vector<int> &s){
       case 1:
         cout << "Swap" << endl;
         distance = Swap(s, distance);
+        printCities(s);
+        cout << "Nova distancia " << distance << endl;
         break;
       case 2:
         cout << "2-opt" << endl;
         distance = _2opt(s, distance);
+        printCities(s);
+        cout << "Nova distancia " << distance << endl;
         break;
       case 3:
         cout << "Reinsertion" << endl;
         distance = orkOpt(s, distance, 1);
+        printCities(s);
+        cout << "Nova distancia " << distance << endl;
         break;
       case 4:
         cout << "Or-2-opt" << endl;
         distance = orkOpt(s, distance, 2);
+        printCities(s);
+        cout << "Nova distancia " << distance << endl;
         break;
       case 5:
         cout << "Or-3-opt" << endl;
         distance = orkOpt(s, distance, 3);
+        printCities(s);
+        cout << "Nova distancia " << distance << endl;
         break;
     }
     NL.erase(NL.begin());
@@ -320,7 +306,7 @@ int main(int argc, char** argv) {
       cout << "Versão final ";
       printCities(s);
       cout << distance << endl;
-      getDistance(s);
+      //getDistance(s);
       //if(interILS == 9) interILS = 0;
     }
   }
