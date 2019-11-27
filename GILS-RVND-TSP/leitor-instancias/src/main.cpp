@@ -33,7 +33,7 @@ void printData() {
   }
 }
 
-void printCities(vector<int> &list){
+void printList(vector<int> &list){
   for (auto i = list.begin(); i != list.end(); ++i) 
     cout << *i << " "; 
   cout << endl;
@@ -45,7 +45,7 @@ double getDistance(vector<int> &listaCidade){
   for(int i = 0; i < listaCidade.size()- 1; i++){
       distance += matrizAdj[listaCidade.at(i)][listaCidade.at(i+1)];
   }
-  cout << "distancia " << distance << endl;
+  //cout << "distancia " << distance << endl;
   return distance; 
 }
 
@@ -284,9 +284,8 @@ int main(int argc, char** argv) {
 
   double alpha;
   vector<int>  s;
-  int distance = 0;
+  int distance = 0, distance_ = 0;
   vector<int>  s_;
-  int distance_ = 0;
 
   //TODO: ALTERAR 1 para dimension
   int IILS = min(1,100); 
@@ -302,10 +301,10 @@ int main(int argc, char** argv) {
     s_ = s;
 
     for(int interILS = 0; interILS < IILS; interILS++){
-      printCities(s);
+      printList(s);
       distance = RVND(s);
       cout << "Versão final ";
-      printCities(s);
+      printList(s);
       cout << distance << endl;
       getDistance(s);
       //if(interILS == 9) interILS = 0;
