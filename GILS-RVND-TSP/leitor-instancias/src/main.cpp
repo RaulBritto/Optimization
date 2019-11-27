@@ -287,29 +287,46 @@ int main(int argc, char** argv) {
   int distance = 0, distance_ = 0;
   vector<int>  s_;
 
-  //TODO: ALTERAR 1 para dimension
-  int IILS = min(1,100); 
-  
   /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
+  //TODO: ALTERAR 1 para dimension
+  int IILS = min(dimension,100); 
+  
   //printData();
   for(int i = 0; i < IMAX; i++){
     alpha = R[rand()%R.size()];
     s = Construction(alpha);
     s_ = s;
+    distance_ = getDistance(s_);
 
-    for(int interILS = 0; interILS < IILS; interILS++){
-      printList(s);
+    //cout << "Solução inicial: ";
+    //printList(s_);
+    //cout << "Menor distancia: " << distance_ << endl;
+
+    for(int iterILS = 0; iterILS < IILS; iterILS++){
       distance = RVND(s);
-      cout << "Versão final ";
-      printList(s);
-      cout << distance << endl;
-      getDistance(s);
-      //if(interILS == 9) interILS = 0;
+      //cout << iterILS << ")" << endl;
+      //printList(s);
+      //cout << "Menor distancia: " << distance_ << endl;
+      //cout << "distance apos otimizacao: " << distance << endl;
+      if(distance < distance_){
+        s_ = s;
+        distance_ = distance;
+        iterILS = 0;
+      }
+      s = Pertub(s_);
+      distance = getDistance(s);
+      //cout << "Pertubando:" << endl;
+      //printList(s);
+      //cout << "distance: " << distance << endl;
     }
   }
+
+  cout << "Melhor solucao:" << endl;
+  printList(s_);
+  cout << getDistance(s_) << endl;
     
   return 0;  
 }
