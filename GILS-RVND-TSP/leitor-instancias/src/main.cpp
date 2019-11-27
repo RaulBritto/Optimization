@@ -135,8 +135,8 @@ int _2opt(vector<int> &s, double distancia){
   int firstNode = 0, secondNode = 0;
   vector<int> subsequence;
 
-    for(int i = 1 ; i < s.size()-3; i++){
-      for(int j = i +2; j < s.size()-1; j++){
+    for(int i = 1 ; i < s.size()-2; i++){
+      for(int j = i +1; j < s.size()-1; j++){
         delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[j]][s[j+1]]
                   + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[i]][s[j+1]];
         if(deltaMinimium > delta){
@@ -230,46 +230,45 @@ vector<int> Pertub(vector<int> s){
 int RVND(vector<int> &s){
   
   vector<int> NL;
-  int distance = 0;
+  vector<int> s_;
+  int distance = 0, distance_ = 0;
   //set some values:
   for (int i=1; i<=5; ++i) NL.push_back(i);
   //using built-in random generator:
   random_shuffle(NL.begin(), NL.end());
 
+  s_ = s;
   distance = getDistance(s);
+  distance_ = distance;
 
   while(!NL.empty()){
     switch (NL.front()){ 
       case 1:
         cout << "Swap" << endl;
-        distance = Swap(s, distance);
-        printCities(s);
-        cout << "Nova distancia " << distance << endl;
+        //distance_ = Swap(s_, distance_);
         break;
       case 2:
         cout << "2-opt" << endl;
-        distance = _2opt(s, distance);
-        printCities(s);
-        cout << "Nova distancia " << distance << endl;
+        distance_ = _2opt(s_, distance_);
         break;
       case 3:
         cout << "Reinsertion" << endl;
-        distance = orkOpt(s, distance, 1);
-        printCities(s);
-        cout << "Nova distancia " << distance << endl;
+        //distance_ = orkOpt(s_, distance_, 1);
         break;
       case 4:
         cout << "Or-2-opt" << endl;
-        distance = orkOpt(s, distance, 2);
-        printCities(s);
-        cout << "Nova distancia " << distance << endl;
+        //distance_ = orkOpt(s_, distance_, 2);
         break;
       case 5:
         cout << "Or-3-opt" << endl;
-        distance = orkOpt(s, distance, 3);
-        printCities(s);
-        cout << "Nova distancia " << distance << endl;
+        //distance_ = orkOpt(s_, distance_, 3);
         break;
+    }
+    if(distance_ < distance){
+      s = s_;
+      distance = distance_;
+      printCities(s);
+      cout << "Nova distancia " << distance << endl;
     }
     NL.erase(NL.begin());
   }
