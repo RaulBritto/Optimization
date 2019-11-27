@@ -231,7 +231,7 @@ int RVND(vector<int> &s){
   
   vector<int> NL;
   vector<int> s_;
-  int distance = 0, distance_ = 0;
+  int distance = 0, distance_ = 0, choosed = 0;
   //set some values:
   for (int i=1; i<=5; ++i) NL.push_back(i);
   //using built-in random generator:
@@ -244,33 +244,35 @@ int RVND(vector<int> &s){
   while(!NL.empty()){
     switch (NL.front()){ 
       case 1:
-        cout << "Swap" << endl;
-        //distance_ = Swap(s_, distance_);
+        //cout << "Swap" << endl;
+        distance_ = Swap(s_, distance_);
         break;
       case 2:
-        cout << "2-opt" << endl;
+        //cout << "2-opt" << endl;
         distance_ = _2opt(s_, distance_);
         break;
       case 3:
-        cout << "Reinsertion" << endl;
-        //distance_ = orkOpt(s_, distance_, 1);
+        //cout << "Reinsertion" << endl;
+        distance_ = orkOpt(s_, distance_, 1);
         break;
       case 4:
-        cout << "Or-2-opt" << endl;
-        //distance_ = orkOpt(s_, distance_, 2);
+        //cout << "Or-2-opt" << endl;
+        distance_ = orkOpt(s_, distance_, 2);
         break;
       case 5:
-        cout << "Or-3-opt" << endl;
-        //distance_ = orkOpt(s_, distance_, 3);
+        //cout << "Or-3-opt" << endl;
+        distance_ = orkOpt(s_, distance_, 3);
         break;
     }
     if(distance_ < distance){
       s = s_;
       distance = distance_;
-      printCities(s);
-      cout << "Nova distancia " << distance << endl;
+      NL.clear();
+      for (int i=1; i<=5; ++i) NL.push_back(i);
+      random_shuffle(NL.begin(), NL.end());
+    }else{
+      NL.erase(NL.begin());
     }
-    NL.erase(NL.begin());
   }
 
   return distance;
@@ -305,7 +307,7 @@ int main(int argc, char** argv) {
       cout << "Versão final ";
       printCities(s);
       cout << distance << endl;
-      //getDistance(s);
+      getDistance(s);
       //if(interILS == 9) interILS = 0;
     }
   }
