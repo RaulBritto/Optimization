@@ -13,7 +13,7 @@ int dimension; // quantidade total de vertices
 vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
                     , 0.21, 0.22, 0.23, 0.24, 0.25};
-int IMAX = 1;
+int IMAX = 10;
 
 struct InsertionInfo{
   int noInserido; // no k a ser inserido
@@ -286,6 +286,8 @@ int main(int argc, char** argv) {
   vector<int>  s;
   int distance = 0, distance_ = 0;
   vector<int>  s_;
+  int f = 10000000;
+  vector<int> bestRoute;
 
   /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
@@ -322,11 +324,16 @@ int main(int argc, char** argv) {
       //printList(s);
       //cout << "distance: " << distance << endl;
     }
+    if(distance_ < f){
+      bestRoute = s_;
+      f = distance_;
+    }
+    //cout << i << ")" << getDistance(s_) << endl;
   }
 
   cout << "Melhor solucao:" << endl;
-  printList(s_);
-  cout << getDistance(s_) << endl;
+  printList(bestRoute);
+  cout << f << endl;
     
   return 0;  
 }
