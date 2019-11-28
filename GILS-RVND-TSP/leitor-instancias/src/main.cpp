@@ -9,20 +9,21 @@
 using namespace std;
 
 double ** matrizAdj;
-int dimension; // quantidade total de vertices
+int dimension; // number of vertices in the problem
+/*This array is responsable to choose the alpha variable to control the randomness level in the construction step*/
 vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
-                    , 0.21, 0.22, 0.23, 0.24, 0.25};
-int IMAX = 10;
-
+                    , 0.21, 0.22, 0.23, 0.24, 0.25};                    
+int IMAX = 10;  //number of iteration
+/*This struct helps the construction fase*/
 struct InsertionInfo{
-  int noInserido; // no k a ser inserido
-  int arestaRemovida; //aresta {i,j} onde o no k sera inserido
-  double custo; //delta ao inserir k na aresta {i,j}
+  int insertedNode; // no k a ser inserido
+  int removedEdge; //aresta {i,j} onde o no k sera inserido
+  double cost; //delta ao inserir k na aresta {i,j}
 
-  bool operator() (InsertionInfo i,InsertionInfo j) { return (i.custo<j.custo);}
+  bool operator() (InsertionInfo i,InsertionInfo j) { return (i.cost<j.cost);}
 };
-
+/*This function print all the adjacency matrix*/
 void printData() {
   cout << "dimension: " << dimension << endl;
   for (size_t i = 1; i <= dimension; i++) {
@@ -32,13 +33,13 @@ void printData() {
     cout << endl;
   }
 }
-
+/*This function prints all the elements of a list*/
 void printList(vector<int> &list){
   for (auto i = list.begin(); i != list.end(); ++i) 
     cout << *i << " "; 
   cout << endl;
 }
-
+/*This function calculates the distance given a solution of TSP problem.*/
 double getDistance(vector<int> &listaCidade){
   double distance = 0;
 
@@ -47,59 +48,64 @@ double getDistance(vector<int> &listaCidade){
   }
   return distance; 
 }
-
+/*This function builds a initial solution of TSP problem using the cheapest insertion heuristic.
+The solution returned by this function is done using some level of randomness given by alpha.*/
 vector<int>  Construction(double &alpha){ 
 
   vector<int>  s = {1,1};
-  vector<int> listaDeCandidatos;
-  int tamanhoSubtourInicial = 2;
+  vector<int> candidateNodes;
+  int initialSubtourSize = 2;
 
-  // Criando lista de cidades candidatas (indices) a partir da cidade 2
+  // Creating a list with the candidate nodes starting from the city number 2.
   for (int i = 2; i <= dimension; i++) 
-    listaDeCandidatos.push_back(i); 
+    candidateNodes.push_back(i); 
 
-  //Criando subtour com as cidades candidatas
-  for(int i = 0; i < tamanhoSubtourInicial; i++){
-    int j = (rand()) % listaDeCandidatos.size();
-    s.insert(s.begin()+1, listaDeCandidatos[j]);
-    listaDeCandidatos.erase(listaDeCandidatos.begin() + j);
+  // Creating an initial Subtour choosed randomly.
+  for(int i = 0; i < initialSubtourSize; i++){
+    int j = (rand()) % candidateNodes.size();
+    s.insert(s.begin()+1, candidateNodes[j]);
+    candidateNodes.erase(candidateNodes.begin() + j);
   }
 
-  vector <InsertionInfo> custoInsercao((s.size()-1)*listaDeCandidatos.size());
-  /* Variavéis de controle da aleatorieadade*/
+  vector <InsertionInfo> insertionCost((s.size()-1)*candidateNodes.size());
+  /* Variables that control the randomness of the solution*/
   std::default_random_engine generator (time(NULL));
   std::discrete_distribution<int> distribution {1-alpha,alpha};
   int choosed, number; 
 
-  while(listaDeCandidatos.size()){
+  // Compute the insertion cost for all candidate Nodes
+  while(candidateNodes.size()){
     for(int i = 1, j = i+1, l = 0 ; i <= s.size() - 1; i++, j++){
-      for(auto k : listaDeCandidatos){
-        custoInsercao[l].custo = matrizAdj[s[i-1]][k] + matrizAdj[s[j-1]][k] - matrizAdj[s[i-1]][s[j-1]];
-        custoInsercao[l].noInserido = k;
-        custoInsercao[l].arestaRemovida = i ;
+      for(auto k : candidateNodes){
+        insertionCost[l].cost = matrizAdj[s[i-1]][k] + matrizAdj[s[j-1]][k] - matrizAdj[s[i-1]][s[j-1]];
+        insertionCost[l].insertedNode = k;
+        insertionCost[l].removedEdge = i ;
         l++;
       }
     }
+    //Sort the vector InsertionCost by ascending order
+    std::sort(insertionCost.begin(), insertionCost.end(), InsertionInfo());
 
-    std::sort(custoInsercao.begin(), custoInsercao.end(), InsertionInfo());
-
+    //Check if the next node inserted will be the cheapest insertion or a random node.
     number = distribution(generator);
     if(!number) choosed = 0;
-    else choosed = rand()%custoInsercao.size();
+    else choosed = rand()%insertionCost.size();
 
-    s.insert(s.begin()+custoInsercao[choosed].arestaRemovida, custoInsercao[choosed].noInserido);
-    listaDeCandidatos.erase(remove(listaDeCandidatos.begin(), listaDeCandidatos.end(), custoInsercao[choosed].noInserido), listaDeCandidatos.end());
-    custoInsercao.resize((s.size()-1)*listaDeCandidatos.size());
+    //Insert the node choosed and remove from candidate nodes
+    s.insert(s.begin()+insertionCost[choosed].removedEdge, insertionCost[choosed].insertedNode);
+    candidateNodes.erase(remove(candidateNodes.begin(), candidateNodes.end(), insertionCost[choosed].insertedNode), candidateNodes.end());
+    insertionCost.resize((s.size()-1)*candidateNodes.size());
   } 
 
   return s;
 }
 
+/*This function calculates all the possibles 'swap' between the nodes and chooses the best one (Descresing the total distance).*/
 int Swap(vector<int> &s, double distancia){
 
   double delta = 0, deltaMinimium = 0;
   int firstNode = 0, secondNode = 0;
-  
+
     for(int n = 0, i = 1; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
       for(int j = i+1; j < s.size()-1; j++){  
         if(j == i+1){
@@ -120,14 +126,14 @@ int Swap(vector<int> &s, double distancia){
         } 
       }
     }
-    //Se houve melhora
+    //Check if exists an improvement
     if(deltaMinimium < 0){
       distancia = distancia + deltaMinimium;
       swap(s[firstNode], s[secondNode]);
     }
       return distancia;      
 }
-
+/*This function calculates all the reverse subsenquences in the solution and chooses the best one (Descresing the total distance).*/
 int _2opt(vector<int> &s, double distancia){
 
   double delta = 0, deltaMinimium = 0;
@@ -144,7 +150,7 @@ int _2opt(vector<int> &s, double distancia){
         }
       }
     }
-    //Se houve melhora
+    //Check if exists an improvement
     if(deltaMinimium < 0){
       //creting new reverse sequence 
       for(int i = secondNode; i >= firstNode; i--) subsequence.push_back(s[i]);
@@ -159,6 +165,7 @@ int _2opt(vector<int> &s, double distancia){
   return distancia; 
 }
 
+/*This function calculates the best insertion of a subsequence of size 'k' in the solution and chooses the best one (Descresing the total distance).*/
 int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
@@ -196,7 +203,7 @@ int orkOpt(vector<int> &s, double distancia, int k){
 
   return distancia; 
 }
-
+ /*This function pertubs the solution (chooses two subsequences with random size with no matching and swaps both).*/
 vector<int> Pertub(vector<int> s){
 
   vector<int> subsequence;
@@ -226,6 +233,7 @@ vector<int> Pertub(vector<int> s){
   return s;
 }
 
+/*This function implements the Random VND and return the minimum distance found.*/
 int RVND(vector<int> &s){
   
   vector<int> NL;
@@ -288,11 +296,9 @@ int main(int argc, char** argv) {
   int f = 10000000;
   vector<int> bestRoute;
 
-  /* Variavéis de controle da aleatorieadade*/
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
-  //TODO: ALTERAR 1 para dimension
   int IILS = min(dimension,100); 
   
   //printData();
@@ -318,7 +324,7 @@ int main(int argc, char** argv) {
     }
   }
 
-  cout << "Melhor solucao:" << endl;
+  cout << "Best solution:" << endl;
   printList(bestRoute);
   cout << f << endl;
     
