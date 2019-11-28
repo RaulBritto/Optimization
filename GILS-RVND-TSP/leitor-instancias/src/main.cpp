@@ -45,7 +45,6 @@ double getDistance(vector<int> &listaCidade){
   for(int i = 0; i < listaCidade.size()- 1; i++){
       distance += matrizAdj[listaCidade.at(i)][listaCidade.at(i+1)];
   }
-  //cout << "distancia " << distance << endl;
   return distance; 
 }
 
@@ -220,7 +219,7 @@ vector<int> Pertub(vector<int> s){
   vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
   vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
   s.insert(s.begin()+ subsequence[2] , subvector1.begin(),subvector1.end());
-  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 + + subvector1.size());
+  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 +  subvector1.size());
   s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
   s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
   
@@ -303,16 +302,8 @@ int main(int argc, char** argv) {
     s_ = s;
     distance_ = getDistance(s_);
 
-    //cout << "Solução inicial: ";
-    //printList(s_);
-    //cout << "Menor distancia: " << distance_ << endl;
-
     for(int iterILS = 0; iterILS < IILS; iterILS++){
       distance = RVND(s);
-      //cout << iterILS << ")" << endl;
-      //printList(s);
-      //cout << "Menor distancia: " << distance_ << endl;
-      //cout << "distance apos otimizacao: " << distance << endl;
       if(distance < distance_){
         s_ = s;
         distance_ = distance;
@@ -320,15 +311,11 @@ int main(int argc, char** argv) {
       }
       s = Pertub(s_);
       distance = getDistance(s);
-      //cout << "Pertubando:" << endl;
-      //printList(s);
-      //cout << "distance: " << distance << endl;
     }
     if(distance_ < f){
       bestRoute = s_;
       f = distance_;
     }
-    //cout << i << ")" << getDistance(s_) << endl;
   }
 
   cout << "Melhor solucao:" << endl;
