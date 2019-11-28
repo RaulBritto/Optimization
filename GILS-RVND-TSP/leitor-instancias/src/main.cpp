@@ -15,11 +15,11 @@ vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
                     , 0.21, 0.22, 0.23, 0.24, 0.25};                    
 int IMAX = 10;  //number of iteration
-/*This struct helps the construction fase*/
+/*This struct helps the construction step*/
 struct InsertionInfo{
-  int insertedNode; // no k a ser inserido
-  int removedEdge; //aresta {i,j} onde o no k sera inserido
-  double cost; //delta ao inserir k na aresta {i,j}
+  int insertedNode; // node k to be inserted
+  int removedEdge; //edge {i,j} where the node k will be inserted
+  double cost; //delta after insert the node k in the edge {i,j}
 
   bool operator() (InsertionInfo i,InsertionInfo j) { return (i.cost<j.cost);}
 };
