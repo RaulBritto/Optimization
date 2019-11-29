@@ -104,13 +104,14 @@ vector<int>  Construction(double &alpha){
 /*This function calculates all the possibles 'swap' between the nodes and chooses the best one (Descresing the total distance).*/
 int Swap(vector<int> &s, double distancia){
 
-  double delta = 0, deltaMinimium = 0;
+  double delta = 0, deltaMinimium = 0, deltaFixed = 0;
   int firstNode = 0, secondNode = 0;
 
     for(int i = 1, n = 1; i < s.size()-2; i++){
+      deltaFixed = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]];   
       for(int j = i+1; j < s.size()-1; j++){  
         if(j == i+1){
-          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
+          delta = deltaFixed - matrizAdj[s[j]][s[j+1]]
                     + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
           if(deltaMinimium > delta){
             deltaMinimium = delta;
@@ -118,7 +119,7 @@ int Swap(vector<int> &s, double distancia){
           }     
         } 
         else{
-          delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
+          delta = deltaFixed - matrizAdj[s[j-1]][s[j]] - matrizAdj[s[j]][s[j+1]]
                   + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i+1]] + matrizAdj[s[j-1]][s[i]] + matrizAdj[s[i]][s[j+1]];
           if(deltaMinimium > delta){
             deltaMinimium = delta;
@@ -137,13 +138,14 @@ int Swap(vector<int> &s, double distancia){
 /*This function calculates all the reverse subsenquences in the solution and chooses the best one (Descresing the total distance).*/
 int _2opt(vector<int> &s, double distancia){
 
-  double delta = 0, deltaMinimium = 0;
+  double delta = 0, deltaMinimium = 0, deltaFixed = 0;
   int firstNode = 0, secondNode = 0;
   vector<int> subsequence;
 
     for(int i = 1 ; i < s.size()-2; i++){
+      deltaFixed = - matrizAdj[s[i-1]][s[i]];
       for(int j = i +1; j < s.size()-1; j++){
-        delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[j]][s[j+1]]
+        delta = deltaFixed - matrizAdj[s[j]][s[j+1]]
                   + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[i]][s[j+1]];
         if(deltaMinimium > delta){
           deltaMinimium = delta;
@@ -171,7 +173,7 @@ int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
   vector<int> s_;
-  double delta = 0, deltaMinimium = 0;
+  double delta = 0, deltaMinimium = 0, deltaFixed;
 
     for(int i = 1; i < s.size() -k; i++){
       //Creating the subsequence that will be moved  
@@ -180,11 +182,13 @@ int orkOpt(vector<int> &s, double distancia, int k){
       }
       //Removing the subsequence from the solution s
       s.erase(s.begin()+i, s.begin()+i+subsequence.size());
+      deltaFixed = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]];
+
       //To test the new possibilities
       for(int j = 1; j <= s.size()-1;j++){
         //this move generates the same sequence of cities
         if(i == j) continue;
-        delta = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]] - matrizAdj[s[j-1]][s[j]]
+        delta = deltaFixed - matrizAdj[s[j-1]][s[j]]
                 + matrizAdj[s[i-1]][s[i]] + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
         if(deltaMinimium > delta){
           deltaMinimium = delta;
