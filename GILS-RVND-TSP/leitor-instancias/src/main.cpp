@@ -13,7 +13,8 @@ int dimension; // number of vertices in the problem
 /*This array is responsable to choose the alpha variable to control the randomness level in the construction step*/
 vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0.10
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
-                    , 0.21, 0.22, 0.23, 0.24, 0.25};                    
+                    , 0.21, 0.22, 0.23, 0.24, 0.25};
+//TODO change to IMAX                    
 int IMAX = 10;  //number of iteration
 /*This struct helps the construction step*/
 struct InsertionInfo{
@@ -106,7 +107,7 @@ int Swap(vector<int> &s, double distancia){
   double delta = 0, deltaMinimium = 0;
   int firstNode = 0, secondNode = 0;
 
-    for(int n = 0, i = 1; n < (s.size()-1)*(s.size()-2)/2; n++,i++){
+    for(int i = 1, n = 1; i < s.size()-2; i++){
       for(int j = i+1; j < s.size()-1; j++){  
         if(j == i+1){
           delta = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]] - matrizAdj[s[j]][s[j+1]]
@@ -299,6 +300,7 @@ int main(int argc, char** argv) {
   srand (time(NULL));
  
   readData(argc, argv, &dimension, &matrizAdj);
+  //TODO put dimension
   int IILS = min(dimension,100); 
   
   //printData();
@@ -324,8 +326,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  cout << "Best solution:" << endl;
-  printList(bestRoute);
+  //cout << "Best solution:" << endl;
+  //printList(bestRoute);
   cout << f << endl;
     
   return 0;  
