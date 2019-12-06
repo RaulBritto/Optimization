@@ -15,7 +15,7 @@ vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
                     , 0.21, 0.22, 0.23, 0.24, 0.25};
 //TODO change to IMAX                    
-int IMAX = 10;  //number of iteration
+int IMAX = 50;  //number of iteration
 /*This struct helps the construction step*/
 struct InsertionInfo{
   int insertedNode; // node k to be inserted
@@ -172,38 +172,38 @@ int _2opt(vector<int> &s, double distancia){
 int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
-  vector<int> s_;
-  double delta = 0, deltaMinimium = 0, deltaFixed;
+  double delta = 0, deltaMinimium = 0, deltaFixed = 0;
+  int firstNode = 0, secondNode = 0;
 
     for(int i = 1; i < s.size() -k; i++){
-      //Creating the subsequence that will be moved  
-      for(int j = 0; j < k; j++ ){
-        subsequence.push_back(s[i+j]);
-      }
-      //Removing the subsequence from the solution s
-      s.erase(s.begin()+i, s.begin()+i+subsequence.size());
-      deltaFixed = - matrizAdj[s[i-1]][subsequence[0]] - matrizAdj[subsequence[k-1]][s[i]];
-
-      //To test the new possibilities
-      for(int j = 1; j <= s.size()-1;j++){
-        //this move generates the same sequence of cities
-        if(i == j) continue;
-        delta = deltaFixed - matrizAdj[s[j-1]][s[j]]
-                + matrizAdj[s[i-1]][s[i]] + matrizAdj[s[j-1]][subsequence[0]] + matrizAdj[subsequence[k-1]][s[j]];
-        if(deltaMinimium > delta){
-          deltaMinimium = delta;
-          s.insert(s.begin()+j, subsequence.begin(), subsequence.end());
-          s_ = s;
-          s.erase(s.begin()+j, s.begin()+j+subsequence.size());
+      deltaFixed = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i+k-1]][s[i+k]] + matrizAdj[s[i-1]][s[i+k]];
+      //cout << deltaFixed << endl;
+      for(int j = 0; j < s.size() -1; j++){
+        if(j >= i-1 && j < i+k) continue;
+        else{
+          delta = deltaFixed + matrizAdj[s[j]][s[i]] + matrizAdj[s[i+k-1]][s[j+1]] - matrizAdj[s[j]][s[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }
         }
       }
-      s.insert(s.begin()+i , subsequence.begin(), subsequence.end());
-      subsequence.clear();
     }
+    
     //If an improvement exists
     if(deltaMinimium < 0){
+      //Creating the subsequence that will be moved  
+      for(int j = 0; j < k; j++ ){
+        subsequence.push_back(s[j+firstNode]);
+      }
+      s.erase(s.begin()+firstNode, s.begin()+firstNode+k);  
+      if(firstNode < secondNode){
+        s.insert(s.begin()+secondNode+1-k, subsequence.begin(), subsequence.end());
+      }else{
+        s.insert(s.begin()+secondNode+1, subsequence.begin(), subsequence.end());  
+      }
       distancia = distancia + deltaMinimium;
-      s = s_;
+
     } 
 
   return distancia; 
@@ -321,7 +321,7 @@ int main(int argc, char** argv) {
         distance_ = distance;
         iterILS = 0;
       }
-      s = Pertub(s_);
+      Pertub(s_);
       distance = getDistance(s);
     }
     if(distance_ < f){
