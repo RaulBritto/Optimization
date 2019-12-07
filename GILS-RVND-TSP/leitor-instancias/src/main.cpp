@@ -105,11 +105,12 @@ vector<int>  Construction(double &alpha){
 int Swap(vector<int> &s, double distancia){
 
   double delta = 0, deltaMinimium = 0, deltaFixed = 0;
-  int firstNode = 0, secondNode = 0;
+  int firstNode = 0, secondNode = 0, length = 0;
 
-    for(int i = 1, n = 1; i < s.size()-2; i++){
+    length = s.size();
+    for(int i = 1, n = 1; i < length-2; i++){
       deltaFixed = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]];   
-      for(int j = i+1; j < s.size()-1; j++){  
+      for(int j = i+1; j < length-1; j++){  
         if(j == i+1){
           delta = deltaFixed - matrizAdj[s[j]][s[j+1]]
                     + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[j]][s[i]] + matrizAdj[s[i]][s[j+1]];
@@ -139,12 +140,13 @@ int Swap(vector<int> &s, double distancia){
 int _2opt(vector<int> &s, double distancia){
 
   double delta = 0, deltaMinimium = 0, deltaFixed = 0;
-  int firstNode = 0, secondNode = 0;
+  int firstNode = 0, secondNode = 0, length = 0;
   vector<int> subsequence;
 
-    for(int i = 1 ; i < s.size()-2; i++){
+    length = s.size();
+    for(int i = 1 ; i < length-2; i++){
       deltaFixed = - matrizAdj[s[i-1]][s[i]];
-      for(int j = i +1; j < s.size()-1; j++){
+      for(int j = i +1; j < length-1; j++){
         delta = deltaFixed - matrizAdj[s[j]][s[j+1]]
                   + matrizAdj[s[i-1]][s[j]] + matrizAdj[s[i]][s[j+1]];
         if(deltaMinimium > delta){
@@ -173,12 +175,13 @@ int orkOpt(vector<int> &s, double distancia, int k){
 
   vector<int> subsequence;
   double delta = 0, deltaMinimium = 0, deltaFixed = 0;
-  int firstNode = 0, secondNode = 0;
+  int firstNode = 0, secondNode = 0, length = 0;
 
-    for(int i = 1; i < s.size() -k; i++){
+    length = s.size();
+    for(int i = 1; i < length -k; i++){
       deltaFixed = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i+k-1]][s[i+k]] + matrizAdj[s[i-1]][s[i+k]];
       //cout << deltaFixed << endl;
-      for(int j = 0; j < s.size() -1; j++){
+      for(int j = 0; j < length -1; j++){
         if(j >= i-1 && j < i+k) continue;
         else{
           delta = deltaFixed + matrizAdj[s[j]][s[i]] + matrizAdj[s[i+k-1]][s[j+1]] - matrizAdj[s[j]][s[j+1]];
@@ -209,11 +212,13 @@ int orkOpt(vector<int> &s, double distancia, int k){
   return distancia; 
 }
  /*This function pertubs the solution (chooses two subsequences with random size with no matching and swaps both).*/
-vector<int> Pertub(vector<int> s){
+void Pertub(vector<int> &s){
 
   vector<int> subsequence;
   std::vector<int>::iterator it;
   int index;
+
+  //printList(s);
 
   //Choose the first index
   index = (rand() % (s.size()-2)) + 1;
@@ -235,7 +240,6 @@ vector<int> Pertub(vector<int> s){
   s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
   s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
   
-  return s;
 }
 
 /*This function implements the Random VND and return the minimum distance found.*/
