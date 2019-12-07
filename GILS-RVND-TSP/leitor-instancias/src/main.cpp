@@ -4,9 +4,11 @@
 #include <vector>
 #include <random>
 #include <algorithm>
+#include <chrono>
 
 
 using namespace std;
+using namespace std::chrono; 
 
 double ** matrizAdj;
 int dimension; // number of vertices in the problem
@@ -232,6 +234,10 @@ void Pertub(vector<int> &s){
   } 
   std::sort (subsequence.begin(), subsequence.end());
   
+  if(subsequence[1] - subsequence[0] > 10) subsequence[1] = subsequence[1]+10;
+  if(subsequence[3] - subsequence[2] > 10) subsequence[3] = subsequence[2]+10;
+  //printList(subsequence);
+  
   //Swap the subvectors sequences
   vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
   vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
@@ -239,6 +245,8 @@ void Pertub(vector<int> &s){
   s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 +  subvector1.size());
   s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
   s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
+
+  //printList(s);
   
 }
 
@@ -298,6 +306,9 @@ int RVND(vector<int> &s){
 
 int main(int argc, char** argv) {
 
+  // Get starting timepoint 
+  auto start = high_resolution_clock::now(); 
+
   double alpha;
   vector<int>  s;
   int distance = 0, distance_ = 0;
@@ -332,17 +343,20 @@ int main(int argc, char** argv) {
         iterILS = 0;
       }
       Pertub(s_);
-      distance = getDistance(s);
     }
     if(distance_ < f){
       bestRoute = s_;
       f = distance_;
     }
   }
+  // Get ending timepoint 
+  auto stop = high_resolution_clock::now(); 
+  auto duration = duration_cast<microseconds>(stop - start); 
 
   //cout << "Best solution:" << endl;
   //printList(bestRoute);
-  cout << f << endl;
-    
+  cout << f << " " << duration.count()/1000000.0 << endl;
+  
+
   return 0;  
 }
