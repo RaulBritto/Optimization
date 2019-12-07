@@ -309,7 +309,13 @@ int main(int argc, char** argv) {
  
   readData(argc, argv, &dimension, &matrizAdj);
   //TODO put dimension
-  int IILS = min(dimension,100); 
+  int IILS = 0 ;
+  if(dimension >= 150){
+    IILS = dimension/2;
+  }else{
+    IILS = dimension;
+  }
+  
   
   //printData();
   for(int i = 0; i < IMAX; i++){
