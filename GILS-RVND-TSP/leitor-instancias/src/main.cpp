@@ -55,50 +55,57 @@ double getDistance(vector<int> &listaCidade){
 The solution returned by this function is done using some level of randomness given by alpha.*/
 vector<int>  Construction(double &alpha){ 
 
-  vector<int>  s = {1,1};
-  vector<int> candidateNodes;
-  int initialSubtourSize = 2;
+  vector<int>  s = {1,1}; //Initial Solution
+  vector<int> candidateNodes; //List of candidate nodes
+  /* Variables that control the randomness of the solution*/
+  std::default_random_engine generator (time(NULL));
+  std::discrete_distribution<int> distribution {1-alpha,alpha};
+  int choosed, number; 
+  //Compute the best insertion in the solution
+  double cost = 0, lowerCost = 100000000;
+  vector <InsertionInfo> bestCandidates; //Vector that stores the best candidates in case of tie
+  InsertionInfo candidate;
 
   // Creating a list with the candidate nodes starting from the city number 2.
   for (int i = 2; i <= dimension; i++) 
     candidateNodes.push_back(i); 
 
-  // Creating an initial Subtour choosed randomly.
-  for(int i = 0; i < initialSubtourSize; i++){
-    int j = (rand()) % candidateNodes.size();
-    s.insert(s.begin()+1, candidateNodes[j]);
-    candidateNodes.erase(candidateNodes.begin() + j);
-  }
-
-  vector <InsertionInfo> insertionCost((s.size()-1)*candidateNodes.size());
-  /* Variables that control the randomness of the solution*/
-  std::default_random_engine generator (time(NULL));
-  std::discrete_distribution<int> distribution {1-alpha,alpha};
-  int choosed, number; 
-
-  // Compute the insertion cost for all candidate Nodes
+  
+  //Calculate the best node to insertion in the entire candidate nodes
   while(candidateNodes.size()){
-    for(int i = 1, j = i+1, l = 0 ; i <= s.size() - 1; i++, j++){
-      for(auto k : candidateNodes){
-        insertionCost[l].cost = matrizAdj[s[i-1]][k] + matrizAdj[s[j-1]][k] - matrizAdj[s[i-1]][s[j-1]];
-        insertionCost[l].insertedNode = k;
-        insertionCost[l].removedEdge = i ;
-        l++;
+    lowerCost = 100000000;
+    for(int i = 0; i < s.size()-1;i++){
+      for(int j = 0; j < candidateNodes.size();j++){
+        cost = matrizAdj[s[i]][candidateNodes[j]] + matrizAdj[candidateNodes[j]][s[i+1]] - matrizAdj[s[i]][s[i+1]];
+        if(cost < lowerCost){
+          candidate.cost = cost;
+          candidate.insertedNode = j;
+          candidate.removedEdge = i;
+          bestCandidates.clear();
+          bestCandidates.insert(bestCandidates.begin(), candidate);
+          lowerCost = cost;
+        }else if (cost == lowerCost)
+        {
+          candidate.cost = cost;
+          candidate.insertedNode = j;
+          candidate.removedEdge = i;
+          bestCandidates.push_back(candidate);
+        }
       }
     }
-    //Sort the vector InsertionCost by ascending order
-    std::sort(insertionCost.begin(), insertionCost.end(), InsertionInfo());
-
     //Check if the next node inserted will be the cheapest insertion or a random node.
     number = distribution(generator);
-    if(!number) choosed = 0;
-    else choosed = rand()%insertionCost.size();
-
-    //Insert the node choosed and remove from candidate nodes
-    s.insert(s.begin()+insertionCost[choosed].removedEdge, insertionCost[choosed].insertedNode);
-    candidateNodes.erase(remove(candidateNodes.begin(), candidateNodes.end(), insertionCost[choosed].insertedNode), candidateNodes.end());
-    insertionCost.resize((s.size()-1)*candidateNodes.size());
-  } 
+    if(!number){
+      choosed = rand() % bestCandidates.size();
+      s.insert(s.begin()+1+bestCandidates[choosed].removedEdge , candidateNodes[bestCandidates[choosed].insertedNode]);
+      candidateNodes.erase(candidateNodes.begin() + bestCandidates[choosed].insertedNode);
+    } 
+    else{
+      choosed = rand()%candidateNodes.size();
+      s.insert(s.begin()+1 + (rand()%(s.size()-1)), candidateNodes[choosed]);
+      candidateNodes.erase(candidateNodes.begin() + choosed);  
+    } 
+  }
 
   return s;
 }
@@ -214,13 +221,11 @@ int orkOpt(vector<int> &s, double distancia, int k){
   return distancia; 
 }
  /*This function pertubs the solution (chooses two subsequences with random size with no matching and swaps both).*/
-void Pertub(vector<int> &s){
+vector<int> Pertub(vector<int> s){
 
   vector<int> subsequence;
   std::vector<int>::iterator it;
   int index;
-
-  //printList(s);
 
   //Choose the first index
   index = (rand() % (s.size()-2)) + 1;
@@ -233,21 +238,18 @@ void Pertub(vector<int> &s){
     subsequence.push_back(index);
   } 
   std::sort (subsequence.begin(), subsequence.end());
-  
-  if(subsequence[1] - subsequence[0] > 10) subsequence[1] = subsequence[1]+10;
+  if(subsequence[1] - subsequence[0] > 10) subsequence[1] = subsequence[0]+10;
   if(subsequence[3] - subsequence[2] > 10) subsequence[3] = subsequence[2]+10;
-  //printList(subsequence);
-  
+
   //Swap the subvectors sequences
   vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
   vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
   s.insert(s.begin()+ subsequence[2] , subvector1.begin(),subvector1.end());
-  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 +  subvector1.size());
+  s.erase(s.begin() + subsequence[2] + subvector1.size(), s.begin() + subsequence[3]+1 + + subvector1.size());
   s.erase(s.begin() + subsequence[0], s.begin() + subsequence[1]+1);
   s.insert(s.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
 
-  //printList(s);
-  
+  return s;
 }
 
 /*This function implements the Random VND and return the minimum distance found.*/
@@ -306,9 +308,6 @@ int RVND(vector<int> &s){
 
 int main(int argc, char** argv) {
 
-  // Get starting timepoint 
-  auto start = high_resolution_clock::now(); 
-
   double alpha;
   vector<int>  s;
   int distance = 0, distance_ = 0;
@@ -316,10 +315,10 @@ int main(int argc, char** argv) {
   int f = 10000000;
   vector<int> bestRoute;
 
+  /* Generate seed randomly*/
   srand (time(NULL));
- 
   readData(argc, argv, &dimension, &matrizAdj);
-  //TODO put dimension
+
   int IILS = 0 ;
   if(dimension >= 150){
     IILS = dimension/2;
@@ -327,14 +326,14 @@ int main(int argc, char** argv) {
     IILS = dimension;
   }
   
-  
+  // Get starting timepoint 
+  auto start = high_resolution_clock::now(); 
   //printData();
   for(int i = 0; i < IMAX; i++){
     alpha = R[rand()%R.size()];
     s = Construction(alpha);
     s_ = s;
     distance_ = getDistance(s_);
-
     for(int iterILS = 0; iterILS < IILS; iterILS++){
       distance = RVND(s);
       if(distance < distance_){
@@ -342,7 +341,7 @@ int main(int argc, char** argv) {
         distance_ = distance;
         iterILS = 0;
       }
-      Pertub(s_);
+      s = Pertub(s_);
     }
     if(distance_ < f){
       bestRoute = s_;
@@ -355,8 +354,9 @@ int main(int argc, char** argv) {
 
   //cout << "Best solution:" << endl;
   //printList(bestRoute);
-  cout << f << " " << duration.count()/1000000.0 << endl;
-  
+  cout << f << ", " << duration.count()/1000000.0 << endl;
+  //cout << getDistance(bestRoute);  
+
 
   return 0;  
 }
