@@ -117,7 +117,7 @@ int Swap(vector<int> &s, double distancia){
   int firstNode = 0, secondNode = 0, length = 0;
 
     length = s.size();
-    for(int i = 1, n = 1; i < length-2; i++){
+    for(int i = 1; i < length-2; i++){
       deltaFixed = - matrizAdj[s[i-1]][s[i]] - matrizAdj[s[i]][s[i+1]];   
       for(int j = i+1; j < length-1; j++){  
         if(j == i+1){
