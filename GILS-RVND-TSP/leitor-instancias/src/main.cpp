@@ -240,7 +240,6 @@ vector<int> Pertub(vector<int> s){
   std::sort (subsequence.begin(), subsequence.end());
   if(subsequence[1] - subsequence[0] > 10) subsequence[1] = subsequence[0]+10;
   if(subsequence[3] - subsequence[2] > 10) subsequence[3] = subsequence[2]+10;
-
   //Swap the subvectors sequences
   vector<int> subvector1 = std::vector<int>(s.begin()+subsequence[0],s.begin()+subsequence[1]+1);
   vector<int> subvector2 = std::vector<int>(s.begin()+subsequence[2],s.begin()+subsequence[3]+1);
@@ -331,7 +330,11 @@ int main(int argc, char** argv) {
   //printData();
   for(int i = 0; i < IMAX; i++){
     alpha = R[rand()%R.size()];
+    auto inicio = high_resolution_clock::now(); 
     s = Construction(alpha);
+    auto fim = high_resolution_clock::now(); 
+    auto duracao = duration_cast<microseconds>(fim - inicio); 
+    //cout << "Construção: " << duracao.count()/1000000.0 << endl;
     s_ = s;
     distance_ = getDistance(s_);
     for(int iterILS = 0; iterILS < IILS; iterILS++){
