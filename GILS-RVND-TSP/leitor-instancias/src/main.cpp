@@ -17,7 +17,7 @@ vector<double> R = {0.0, 0.01, 0.02, 0.03, 0.04, 0.05, 0.06, 0.07, 0.08, 0.09, 0
                     , 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20, 0.21
                     , 0.21, 0.22, 0.23, 0.24, 0.25};
 //TODO change to IMAX                    
-int IMAX = 1;  //number of iteration
+int IMAX = 50;  //number of iteration
 /*This struct helps the construction step*/
 struct InsertionInfo{
   int insertedNode; // node k to be inserted
@@ -224,7 +224,7 @@ solution Pertub(solution s){
 
   vector<int> subsequence;
   std::vector<int>::iterator it;
-  int index;
+  int index, distance = 0;
 
   //Choose the first index
   index = (rand() % (s.cities.size()-2)) + 1;
@@ -240,6 +240,21 @@ solution Pertub(solution s){
   if(subsequence[1] - subsequence[0] > 10) subsequence[1] = subsequence[0]+10;
   if(subsequence[3] - subsequence[2] > 10) subsequence[3] = subsequence[2]+10;
 
+
+  distance = - matrizAdj[s.cities[subsequence[0]-1]][s.cities[subsequence[0]]]
+             - matrizAdj[s.cities[subsequence[1]]][s.cities[subsequence[1]+1]]
+             - matrizAdj[s.cities[subsequence[3]]][s.cities[subsequence[3]+1]]
+             + matrizAdj[s.cities[subsequence[0]-1]][s.cities[subsequence[2]]]
+             + matrizAdj[s.cities[subsequence[1]]][s.cities[subsequence[3]+1]];
+             
+  if(subsequence[1] +1 != subsequence[2]){
+    distance += - matrizAdj[s.cities[subsequence[2]-1]][s.cities[subsequence[2]]]
+                + matrizAdj[s.cities[subsequence[3]]][s.cities[subsequence[1]+1]]
+                + matrizAdj[s.cities[subsequence[2]-1]][s.cities[subsequence[0]]];
+  }else{
+    distance += matrizAdj[s.cities[subsequence[3]]][s.cities[subsequence[0]]];
+  }
+
   //Swap the subvectors sequences
   vector<int> subvector1 = std::vector<int>(s.cities.begin()+subsequence[0],s.cities.begin()+subsequence[1]+1);
   vector<int> subvector2 = std::vector<int>(s.cities.begin()+subsequence[2],s.cities.begin()+subsequence[3]+1);
@@ -247,7 +262,7 @@ solution Pertub(solution s){
   s.cities.erase(s.cities.begin() + subsequence[2] + subvector1.size(), s.cities.begin() + subsequence[3]+1  + subvector1.size());
   s.cities.erase(s.cities.begin() + subsequence[0], s.cities.begin() + subsequence[1]+1);
   s.cities.insert(s.cities.begin()+ subsequence[0] , subvector2.begin(),subvector2.end());
-
+  s.distance += distance;
   return s;
 }
 
@@ -339,7 +354,6 @@ int main(int argc, char** argv) {
         iterILS = 0;
       }
       s = Pertub(s_);
-      s.distance = getDistance(s.cities);
     }
     if(s_.distance < f){
       bestRoute = s_;
