@@ -196,29 +196,60 @@ void crossover(vector<solution> &population, int dimension){
   newGeneration.erase(newGeneration.begin()+dimension, newGeneration.end());
 }
 
+/*This function calculates all the possibles 'swap' between the nodes and chooses the best one (Descresing the total distance).*/
+void Swap(solution &s){
+
+  double delta = 0, deltaMinimium = 0, deltaFixed = 0;
+  int firstNode = 0, secondNode = 0, length = 0;
+
+    length = s.cities.size();
+    for(int i = 1; i < length-2; i++){
+      deltaFixed = - matrizAdj[s.cities[i-1]][s.cities[i]] - matrizAdj[s.cities[i]][s.cities[i+1]];   
+      for(int j = i+1; j < length-1; j++){  
+        if(j == i+1){
+          delta = deltaFixed - matrizAdj[s.cities[j]][s.cities[j+1]]
+                    + matrizAdj[s.cities[i-1]][s.cities[j]] + matrizAdj[s.cities[j]][s.cities[i]] + matrizAdj[s.cities[i]][s.cities[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }     
+        } 
+        else{
+          delta = deltaFixed - matrizAdj[s.cities[j-1]][s.cities[j]] - matrizAdj[s.cities[j]][s.cities[j+1]]
+                  + matrizAdj[s.cities[i-1]][s.cities[j]] + matrizAdj[s.cities[j]][s.cities[i+1]] + matrizAdj[s.cities[j-1]][s.cities[i]] + matrizAdj[s.cities[i]][s.cities[j+1]];
+          if(deltaMinimium > delta){
+            deltaMinimium = delta;
+            firstNode = i; secondNode = j;  
+          }      
+        } 
+      }
+    }
+    //Check if exists an improvement
+    if(deltaMinimium < 0){
+      s.distance += deltaMinimium;
+      swap(s.cities[firstNode], s.cities[secondNode]);
+    }
+}
+
 void mutation(vector<solution> & pop, double rate, int dimension){
 
   /* Variables that control the randomness of the solution*/
   std::default_random_engine generator (time(NULL));
   std::discrete_distribution<int> distribution {1-rate,rate};
-  int indexs[2];
+
   for(int i = 0; i < pop.size(); i++){
     if(distribution(generator)){
-      indexs[0] = rand() % dimension;
-      if(indexs[0] == 0) indexs[0] = 1;
-      indexs[1] = rand() % dimension;
-      if(indexs[1] == dimension) indexs[1] = dimension-1;
-      swap(pop[i].cities[indexs[0]], pop[i].cities[indexs[1]]);
-      pop[i].distance = getDistance(pop[i].cities);
+      Swap(pop[i]);     
     }    
   }
 }
 
+
 int main(int argc, char** argv) {
 
-  unsigned int populationSize = 50;
-  int numberOfGenerations = 20;
-  double mutationRate = 0.01;
+  unsigned int populationSize = 100;
+  int numberOfGenerations = 2000;
+  double mutationRate = 0.05;
   vector<solution> population;
   solution bestRoute;
 
@@ -226,17 +257,23 @@ int main(int argc, char** argv) {
   srand (time(NULL));
   readData(argc, argv, &dimension, &matrizAdj);
 
+  // Get starting timepoint 
+  auto start = high_resolution_clock::now(); 
+  //Create random population
   population = randomConstruction(populationSize);
 
   for (int generation = 1; generation <= numberOfGenerations; generation++)
   {
-    crossover(population, populationSize);
+    crossover(population, populationSize); 
     mutation(population, mutationRate, dimension);
   }
-
   sort(population.begin(), population.end());
+  // Get ending timepoint 
+  auto stop = high_resolution_clock::now(); 
+  auto duration = duration_cast<microseconds>(stop - start); 
   bestRoute = population.front();
-  printList(bestRoute.cities); cout << "\t" << bestRoute.distance << endl;
+
+  cout << bestRoute.distance << ", " << duration.count()/1000000.0 << endl;
 
   return 0;  
 }
